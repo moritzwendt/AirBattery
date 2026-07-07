@@ -323,7 +323,7 @@ struct popover: View {
                 HStack(spacing: 4){
                     if !fromDock {
                         Button(action: {
-                            NSApp.terminate(self)
+                            menuPopover.performClose(nil)
                         }, label: {
                             Image(systemName: "xmark.circle")
                                 .font(.system(size: 14, weight: .light))
