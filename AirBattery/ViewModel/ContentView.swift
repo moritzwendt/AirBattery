@@ -258,6 +258,17 @@ struct MultiBatteryView: View {
     }
 }
 
+extension View {
+    func glassIconButton() -> some View {
+        self
+            .buttonStyle(.plain)
+            .focusable(false)
+            .padding(6)
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(), in: Circle())
+    }
+}
+
 struct BlurView: NSViewRepresentable {
     
     private let material: NSVisualEffectView.Material
@@ -320,90 +331,82 @@ struct popover: View {
                             }
                         }
                 }
-                HStack(spacing: 4){
-                    if !fromDock {
-                        Button(action: {
-                            menuPopover.performClose(nil)
-                        }, label: {
-                            Image(systemName: "xmark.circle")
-                                .font(.system(size: 14, weight: .light))
-                                .frame(width: 14, height: 14, alignment: .center)
-                                .foregroundColor(overQuitButton ? .red : .secondary)
-                                .opacity(overQuitButton ? 1 : 0.7)
-                        })
-                        .focusable(false)
-                        .buttonStyle(PlainButtonStyle())
-                        .onHover{ hovering in overQuitButton = hovering }
-                    } else {
+                GlassEffectContainer(spacing: 4) {
+                    HStack(spacing: 4){
+                        if !fromDock {
+                            Button(action: {
+                                menuPopover.performClose(nil)
+                            }, label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .frame(width: 14, height: 14, alignment: .center)
+                                    .foregroundStyle(overQuitButton ? .red : .secondary)
+                            })
+                            .glassIconButton()
+                            .onHover{ hovering in overQuitButton = hovering }
+                        } else {
+                            Button(action: {
+                                dockWindow.orderOut(nil)
+                            }, label: {
+                                Image(systemName: "minus")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .frame(width: 14, height: 14, alignment: .center)
+                                    .foregroundStyle(overQuitButton ? .myYellow : .secondary)
+                            })
+                            .glassIconButton()
+                            .onHover{ hovering in overQuitButton = hovering }
+                        }
+
                         Button(action: {
                             dockWindow.orderOut(nil)
-                        }, label: {
-                            Image(systemName: "minus.circle")
-                                .font(.system(size: 14, weight: .light))
-                                .frame(width: 14, height: 14, alignment: .center)
-                                .foregroundColor(overQuitButton ? .myYellow : .secondary)
-                                .opacity(overQuitButton ? 1 : 0.7)
-                        })
-                        .focusable(false)
-                        .buttonStyle(PlainButtonStyle())
-                        .onHover{ hovering in overQuitButton = hovering }
-                    }
-                    
-                    Button(action: {
-                        dockWindow.orderOut(nil)
-                        statusBarItem.menu?.cancelTracking()
-                        openAboutPanel()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2){
-                            NSApp.activate(ignoringOtherApps: true)
-                        }
-                    }, label: {
-                        Image(systemName: "info.circle")
-                            .font(.system(size: 14, weight: .light))
-                            .frame(width: 14, height: 14, alignment: .center)
-                            .foregroundColor(overInfoButton ? .accentColor : .secondary)
-                            .opacity(overInfoButton ? 1 : 0.7)
-                    })
-                    .focusable(false)
-                    .buttonStyle(PlainButtonStyle())
-                    .onHover{ hovering in overInfoButton = hovering }
-                    Button(action: {
-                        dockWindow.orderOut(nil)
-                        statusBarItem.menu?.cancelTracking()
-                        openSettingPanel()
-                    }, label: {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 13.6, weight: .light))
-                            .frame(width: 14, height: 14, alignment: .center)
-                            .foregroundColor(overSettButton ? .accentColor : .secondary)
-                            .opacity(overSettButton ? 1 : 0.7)
-                    })
-                    .focusable(false)
-                    .buttonStyle(PlainButtonStyle())
-                    .onHover{ hovering in overSettButton = hovering }
-                    Spacer()
-                    if nearCast {
-                        Button(action: {
-                            netcastService.refeshAll()
-                            if fromDock {
-                                dockWindow.orderOut(nil)
-                            } else {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    allDevices = AirBatteryModel.getAll()
-                                    let ibStatus = InternalBattery.status
-                                    if ibStatus.hasBattery { allDevices.insert(ib2ab(ibStatus), at: 0) }
-                                    allNearcast = getFiles(withExtension: "json", in: ncFolder)
-                                }
+                            statusBarItem.menu?.cancelTracking()
+                            openAboutPanel()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2){
+                                NSApp.activate(ignoringOtherApps: true)
                             }
                         }, label: {
-                            Image(systemName: "antenna.radiowaves.left.and.right.circle")
-                                .font(.system(size: 14, weight: .light))
+                            Image(systemName: "info")
+                                .font(.system(size: 11, weight: .semibold))
                                 .frame(width: 14, height: 14, alignment: .center)
-                                .foregroundColor(overReloButton ? .accentColor : .secondary)
-                                .opacity(overReloButton ? 1 : 0.7)
+                                .foregroundStyle(overInfoButton ? .accentColor : .secondary)
                         })
-                        .focusable(false)
-                        .buttonStyle(PlainButtonStyle())
-                        .onHover{ hovering in overReloButton = hovering }
+                        .glassIconButton()
+                        .onHover{ hovering in overInfoButton = hovering }
+                        Button(action: {
+                            dockWindow.orderOut(nil)
+                            statusBarItem.menu?.cancelTracking()
+                            openSettingPanel()
+                        }, label: {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(width: 14, height: 14, alignment: .center)
+                                .foregroundStyle(overSettButton ? .accentColor : .secondary)
+                        })
+                        .glassIconButton()
+                        .onHover{ hovering in overSettButton = hovering }
+                        Spacer()
+                        if nearCast {
+                            Button(action: {
+                                netcastService.refeshAll()
+                                if fromDock {
+                                    dockWindow.orderOut(nil)
+                                } else {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                        allDevices = AirBatteryModel.getAll()
+                                        let ibStatus = InternalBattery.status
+                                        if ibStatus.hasBattery { allDevices.insert(ib2ab(ibStatus), at: 0) }
+                                        allNearcast = getFiles(withExtension: "json", in: ncFolder)
+                                    }
+                                }
+                            }, label: {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .frame(width: 14, height: 14, alignment: .center)
+                                    .foregroundStyle(overReloButton ? .accentColor : .secondary)
+                            })
+                            .glassIconButton()
+                            .onHover{ hovering in overReloButton = hovering }
+                        }
                     }
                 }
                 .offset(y: -3.5)
@@ -442,7 +445,13 @@ struct popover: View {
                             overStackNC = -1
                             if hovering { overStack = 0 }
                         }
-                        .background(overStack == 0 ? Color.blackWhite.opacity(0.15) : .clear)
+                        .background {
+                            if overStack == 0 {
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .fill(.clear)
+                                    .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            }
+                        }
                         if hiddenDevices.count > 0 { Divider() }
                     }
                     ForEach(allDevices.indices, id: \.self) { index in
@@ -625,8 +634,13 @@ struct popover: View {
                                 }
                                 .padding(.vertical, 6)
                                 .padding(.horizontal, 10)
-                                .background(overStack == index ? Color.blackWhite.opacity(0.15) : .clear)//.cornerRadius(4)
-                                .clipShape(RoundedCornersShape(radius: 2.9, corners: index == allDevices.count - (hiddenDevices.count > 0 ? 0 : 1) ? [.bottomLeft, .bottomRight] : (index == 0 ? [.topLeft, .topRight] : [])))
+                                .background {
+                                    if overStack == index {
+                                        RoundedCornersShape(radius: 6, corners: index == allDevices.count - (hiddenDevices.count > 0 ? 0 : 1) ? [.bottomLeft, .bottomRight] : (index == 0 ? [.topLeft, .topRight] : []))
+                                            .fill(.clear)
+                                            .glassEffect(.regular.interactive(), in: RoundedCornersShape(radius: 6, corners: index == allDevices.count - (hiddenDevices.count > 0 ? 0 : 1) ? [.bottomLeft, .bottomRight] : (index == 0 ? [.topLeft, .topRight] : [])))
+                                    }
+                                }
                                 .onHover{ hovering in
                                     overStack2 = -1
                                     overStackNC = -1
@@ -743,7 +757,13 @@ struct popover: View {
                                             .frame(width: 20, height: 20, alignment: .center)
                                             .padding(.vertical, 4)
                                             .padding(.horizontal, 4)
-                                            .background(overStack2 == index ? Color.blackWhite.opacity(0.15) : .clear).cornerRadius(2.5)
+                                            .background {
+                                                if overStack2 == index {
+                                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                                        .fill(.clear)
+                                                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                                }
+                                            }
                                             .onHover{ hovering in
                                                 overStack = -1
                                                 overStackNC = -1
@@ -762,13 +782,9 @@ struct popover: View {
                     }
                 }
                 .padding(.horizontal, 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .strokeBorder(Color.secondary, lineWidth: 1)
-                        .padding(.vertical, -1)
-                        .padding(.horizontal, 5)
-                        .opacity(0.23)
-                )
+                .padding(.vertical, 4)
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, 5)
                 .offset(y: 2.5)
                 if nearCast {
                     ForEach(allNearcast.indices, id: \.self) { index in
